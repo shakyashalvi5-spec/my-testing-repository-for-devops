@@ -1,0 +1,50 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy Code
+      run: |
+        ssh ec2-user@${{ secrets.EC2_HOST }} << EOF
+        cd /var/www/html
+        git pull origin main
+        sudo systemctl restart nginx
+        EOF
+--------------------------------------------------------------------
+✅ STEP 9: GitHub Secrets Add Karo 🔐
+
+GitHub → Repo → Settings → Secrets → Actions → New secret
+1️⃣ EC2_HOST
+<EC2_PUBLIC_IP>
+-----------------------------------------------------------------------------------------
+2️⃣ EC2_KEY
+
+Paste PRIVATE KEY
+---------------------------------------------------------------
+cat ~/.ssh/id_rsa
+
+------------------------------------------------------
+nano index.html
+------------------------------------------
+<h1>Auto Deployment Working 🚀</h1>
+--------------------------------------------------
+git add .
+git commit -m "auto deploy test"
+git push origin main
